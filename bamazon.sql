@@ -10,10 +10,17 @@ CREATE TABLE products (
   item_id INT NOT NULL AUTO_INCREMENT,
   product_name VARCHAR(100) NOT NULL,
   department_name VARCHAR(100) NOT NULL,
-  price DECIMAL(5,2),
+  price DECIMAL(10,2),
   stock_quantity INT(5),
   PRIMARY KEY (id)
 );
+
+CREATE TABLE departments (
+  department_id INT NOT NULL AUTO_INCREMENT,
+  department_name VARCHAR(100) NOT NULL,
+  over_head_costs DECIMAL(10,2),
+  PRIMARY KEY (id)
+)
 
 INSERT INTO products (product_name,department_name,price,stock_quantity)
 VALUES ("Fan", "Samsung",25.00,100), ("Book","Scholastic",5.00,30),("Laptop","HP",500.00,5),
