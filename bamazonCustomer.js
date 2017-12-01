@@ -13,18 +13,37 @@ var connection = mysql.createConnection({
     database: "bamazonDB"
 });
 
-connection.connect(function (err) {
-    if (err) throw err;
+function start() {
+    inquirer
+    .prompt([
+        {
+            name: "start",
+            message: "Do you wish to buy?",
+            type: "confirm",
+            default: true
+        }
+    ])
+    .then(function(yes){
+       
+        if (yes.start){
+            displayProducts();
+        }
+        else{
+            connection.end();
+        }
+    })
+}
+    connection.connect(function (err) {
+        if (err) throw err;
+        start();
+    });
 
-    displayProducts();
-
-});
 
 function displayProducts() {
     connection.query(
         "SELECT item_id, product_name, price FROM products", function (err, res) {
             console.log("\nItems currently on sale on bAmazon!\n")
-        
+
             for (var i = 0; i < res.length; i++) {
                 console.log("ID: " + res[i].item_id + " | Product: " + res[i].product_name + " | Price: " + res[i].price + " |");
             }
@@ -51,7 +70,7 @@ function attemptPurchase() {
             connection.query(
                 "SELECT * FROM products WHERE item_id = ?", [response.item], function (err, res) {
                     if (err) throw err;
-                    
+
                     if (res[0].stock_quantity < response.quantity) {
                         cantBuy();
                     }
@@ -65,21 +84,21 @@ function attemptPurchase() {
 
 function successfulBought(row, amount) {
     console.log("You bought " + amount + " " + row.product_name + "(s)\n");
-    console.log("Your total will be $"+amount*row.price);
+    console.log("Your total will be $" + amount * row.price);
 
     connection.query(
         "UPDATE products SET stock_quantity = ? WHERE item_id = ?",
-        [row.stock_quantity-amount,row.item_id],
+        [row.stock_quantity - amount, row.item_id],
         function (err, res) {
             if (err) throw err;
-            
+
         }
     )
 
-    displayProducts();
+    start();
 }
 
 function cantBuy() {
     console.log("\nError: Not enough inventory!")
-    displayProducts();
+    start();
 }
