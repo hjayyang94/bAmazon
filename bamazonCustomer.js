@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require('inquirer');
+require('console.table');
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -46,10 +47,16 @@ function displayProducts() {
         "SELECT item_id, product_name, price FROM products", function (err, res) {
             if (err) throw err;
             console.log("\nItems currently on sale on bAmazon!\n")
-
+            var results = [];
             for (var i = 0; i < res.length; i++) {
-                console.log("ID: " + res[i].item_id + " | Product: " + res[i].product_name + " | Price: " + res[i].price + " |");
+                item = {
+                    ID: res[i].item_id,
+                    Product: res[i].product_name,
+                    Price: res[i].price
+                }
+                results.push(item);
             }
+            console.table(results);
             attemptPurchase();
         }
     )
@@ -78,7 +85,6 @@ function attemptPurchase() {
                         cantBuy();
                     }
                     else {
-                        console.log("this is id_num: " + parseInt(res[0].item_id))
                         successfulBought(res[0], response.quantity);
                     }
                 })
@@ -87,18 +93,28 @@ function attemptPurchase() {
 
 function successfulBought(row, amount) {
     console.log("You bought " + amount + " " + row.product_name + "(s)\n");
-    console.log("Your total will be $" + amount * row.price);
+    console.log("Your total will be $" + amount * row.price+"\n");
 
     connection.query(
         "UPDATE products SET stock_quantity = ? WHERE item_id = ?",
         [row.stock_quantity - amount, row.item_id],
         function (err, res) {
             if (err) throw err;
-
+            console.log("Stock quantity has been updated");
+            
+        }
+    )
+    connection.query(
+        "UPDATE products SET product_sales = ? WHERE item_id = ?",
+        [row.product_sales+(amount*row.price), row.item_id],
+        function(err, res){
+            if (err) throw err;
+            console.log("Product Sales has been updated\n");
+            start();
         }
     )
 
-    start();
+    
 }
 
 function cantBuy() {
